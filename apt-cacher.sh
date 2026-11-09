@@ -34,6 +34,12 @@
 #   DAEMON_PORT                   TCP port to listen on (default 3142)
 #   DISTINCT_NAMESPACES           1 -> keep Debian and Ubuntu (and others) in
 #                                 separate cache subdirectories (default 1)
+#   ALLOWED_SSL_LOCATIONS         hosts clients may reach with HTTPS CONNECT
+#                                 (comma/semicolon list, EXACT hostnames, no
+#                                 wildcards), e.g. "download.docker.com".
+#                                 Unset -> every https:// repo gets
+#                                 "403 SSL CONNECT proxying not configured".
+#                                 CONNECT is a plain tunnel: nothing is cached.
 #   PATH_MAP                      optional apt-cacher path_map value, e.g.
 #                                 "debian deb.debian.org/debian; ubuntu archive.ubuntu.com/ubuntu"
 #   DISK_USAGE_LIMIT              optional cap on the cache size, e.g. "20GiB"
@@ -129,6 +135,7 @@ rm -f "${PIDFILE}"
   echo "admin_email = ${ADMIN_EMAIL}"
   echo "cache_dir = ${CACHE_DIR}"
   echo "log_dir = ${LOG_DIR}"
+  [ -n "${ALLOWED_SSL_LOCATIONS:-}" ] && echo "allowed_ssl_locations = ${ALLOWED_SSL_LOCATIONS}"
   [ -n "${PATH_MAP:-}" ]         && echo "path_map = ${PATH_MAP}"
   [ -n "${DISK_USAGE_LIMIT:-}" ] && echo "disk_usage_limit = ${DISK_USAGE_LIMIT}"
 } > "${CONF}"

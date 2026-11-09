@@ -57,6 +57,7 @@ them into `/etc/apt-cacher/conf.d/90-container.conf`.
 | `ALLOWED_HOSTS` | `192.168.0.0/16` | clients allowed to use the cache (`allowed_hosts` syntax: IPs, CIDRs, ranges, `*`). apt-cacher's own default is localhost only |
 | `DAEMON_PORT` | `3142` | TCP listen port |
 | `DISTINCT_NAMESPACES` | `1` | keep Debian/Ubuntu/etc. in separate cache subdirectories |
+| `ALLOWED_SSL_LOCATIONS` | (unset; `download.docker.com` in the rsc) | exact hostnames clients may reach with HTTPS CONNECT (tunnel only, not cached) |
 | `PATH_MAP` | (unset) | optional `path_map`, e.g. `debian deb.debian.org/debian; ubuntu archive.ubuntu.com/ubuntu` (mirror-style URLs `http://host:3142/debian/...`) |
 | `DISK_USAGE_LIMIT` | (unset; `20GiB` in the rsc) | cap on cache size |
 | `ADMIN_EMAIL` | `root@localhost` | shown on the info page |
@@ -113,9 +114,19 @@ echo 'Acquire::http::Proxy "http://apt-cacher.dids.atasha.net:3142";' \
   | sudo tee /etc/apt/apt.conf.d/01proxy
 ```
 
-apt-cacher caches `http://` repositories. `https://` repositories are tunnelled
-through with CONNECT and are **not** cached, so keep archive mirrors on
-`http://` (apt verifies package signatures itself).
+apt-cacher caches `http://` repositories. `https://` repositories are only
+tunnelled with CONNECT (never cached), and **only to hosts listed in
+`ALLOWED_SSL_LOCATIONS`** (exact hostnames, no wildcards). Any other https host
+fails with `403 SSL CONNECT proxying not configured`. Keep archive mirrors on
+`http://` (apt verifies package signatures itself) and list each third-party
+https repo, e.g. `download.docker.com`:
+
+```
+/container/envs/set [find where list=apt-cacher and key=ALLOWED_SSL_LOCATIONS] \
+    value="download.docker.com,apt.releases.hashicorp.com"
+/container/stop  [find where hostname="apt-cacher-router"]
+/container/start [find where hostname="apt-cacher-router"]
+```
 
 To add another client VLAN, add it to the firewall address-list:
 

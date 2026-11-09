@@ -79,6 +79,10 @@
 /container/envs/add list=apt-cacher key="DISTINCT_NAMESPACES"  value="1"
 /container/envs/add list=apt-cacher key="DISK_USAGE_LIMIT"     value="20GiB"
 /container/envs/add list=apt-cacher key="TZ"                   value="Europe/London"
+# https:// repos can only be TUNNELLED (not cached), and only to hosts listed
+# here — EXACT hostnames, comma/semicolon separated, no wildcards. Without this
+# apt gets "403 SSL CONNECT proxying not configured". Add a host per https repo.
+/container/envs/add list=apt-cacher key="ALLOWED_SSL_LOCATIONS" value="download.docker.com"
 #
 # Optional envs (uncomment to use):
 #   /container/envs/add list=apt-cacher key="DAEMON_PORT"                  value="3142"
@@ -193,9 +197,10 @@
 #   On each Debian/Ubuntu client:
 #     echo 'Acquire::http::Proxy "http://apt-cacher.dids.atasha.net:3142";' \
 #       | sudo tee /etc/apt/apt.conf.d/01proxy
-#   apt-cacher proxies http:// repos. https:// repos are CONNECTed straight
-#   through (not cached) — keep mirrors on http:// (apt verifies signatures
-#   itself, so http is safe for Debian/Ubuntu archives).
+#   apt-cacher caches http:// repos. https:// repos are only tunnelled (CONNECT,
+#   never cached) and ONLY to hosts in the ALLOWED_SSL_LOCATIONS env (STEP 2);
+#   any other https host fails with "403 SSL CONNECT proxying not configured".
+#   Keep Debian/Ubuntu mirrors on http:// (apt verifies signatures itself).
 #
 # TO REMOVE:
 #   /container/stop   [find where hostname="apt-cacher-router"]
