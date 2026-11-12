@@ -29,7 +29,12 @@
 # Authentication:
 
 #LoginGraceTime 2m
-PermitRootLogin yes
+PermitRootLogin prohibit-password
+PubkeyAuthentication yes
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+ChallengeResponseAuthentication no
+PermitEmptyPasswords no
 #StrictModes yes
 #MaxAuthTries 6
 #MaxSessions 10

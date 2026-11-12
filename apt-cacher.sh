@@ -23,8 +23,8 @@
 #
 # Env contract
 # ------------
-#   PASSWORD                      root password for management SSH     [optional]
-#                                 (unset -> no password login; use
+#   AUTHORIZED_KEYS               OpenSSH public key(s) allowed to log in as root  [optional]
+#                                 (SSH is key-only; unset -> no SSH login, use
 #                                 /container/shell from the router)
 #   ALLOWED_HOSTS                 clients allowed to use the cache (apt-cacher
 #                                 allowed_hosts syntax: IPs, CIDRs, ranges,
@@ -105,8 +105,17 @@ mkdir -p /var/run/sshd
 if [ ! -f /etc/ssh/ssh_host_ed25519_key ]; then
   ssh-keygen -A
 fi
-if [ -n "${PASSWORD:-}" ]; then
-  echo "root:${PASSWORD}" | chpasswd
+# SSH is public-key only: install root's authorized_keys from AUTHORIZED_KEYS
+# (one or more OpenSSH public keys, newline separated). Unset -> nobody can
+# log in over SSH; use /container/shell from the router.
+mkdir -p /root/.ssh
+chmod 700 /root/.ssh
+if [ -n "${AUTHORIZED_KEYS:-}" ]; then
+  printf '%s\n' "${AUTHORIZED_KEYS}" > /root/.ssh/authorized_keys
+  chmod 600 /root/.ssh/authorized_keys
+else
+  rm -f /root/.ssh/authorized_keys
+  echo "WARNING: AUTHORIZED_KEYS not set; SSH login is disabled." >&2
 fi
 
 # ---------------------------------------------------------------------------

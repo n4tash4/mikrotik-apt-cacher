@@ -53,7 +53,7 @@ them into `/etc/apt-cacher/conf.d/90-container.conf`.
 
 | Variable | Default | Description |
 | -------- | ------- | ----------- |
-| `PASSWORD` | (unset) | root password for the management SSH server (only in `secrets.local.rsc`) |
+| `AUTHORIZED_KEYS` | (unset) | OpenSSH public key(s) allowed to log in as root. SSH is key-only (password auth disabled) |
 | `ALLOWED_HOSTS` | `192.168.0.0/16` | clients allowed to use the cache (`allowed_hosts` syntax: IPs, CIDRs, ranges, `*`). apt-cacher's own default is localhost only |
 | `DAEMON_PORT` | `3142` | TCP listen port |
 | `DISTINCT_NAMESPACES` | `1` | keep Debian/Ubuntu/etc. in separate cache subdirectories |
@@ -88,7 +88,7 @@ Run on the router (`ssh admin@192.168.100.1`), in this order:
 
 1. Upload `apt-cacher-arm64.tar` to `/storage`.
 2. **[`rsc/secrets.local.rsc`](rsc/secrets.local.rsc)** — adds the management
-   `PASSWORD` env. **Git-ignored**; run it first.
+   (legacy `PASSWORD` env, no longer used). **Git-ignored**.
 3. **[`rsc/01-router-apt-cacher.rsc`](rsc/01-router-apt-cacher.rsc)** — the rest,
    in `STEP`/`VERIFY`/`TO REMOVE` form:
    - static veth `192.168.102.4/24` (gateway `192.168.102.1`) on
@@ -147,4 +147,4 @@ It must also fall inside `ALLOWED_HOSTS`.
 Traffic report: `http://apt-cacher.dids.atasha.net:3142/report/` (regenerated
 once per maintenance interval). To force a refresh of a corrupt cached file,
 request it with `wget --no-cache`. The container also runs sshd (root,
-`PASSWORD`) on `192.168.102.4`.
+`AUTHORIZED_KEYS`, key-only) on `192.168.102.4`.

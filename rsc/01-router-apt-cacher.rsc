@@ -28,8 +28,7 @@
 #
 # Container ports (image, apt-cacher.sh / Dockerfile):  3142 apt-cacher   22 SSH
 #
-# *** RUN rsc/secrets.local.rsc FIRST *** — it adds the management-SSH PASSWORD
-# to list=apt-cacher. This script adds every OTHER env and must not contain it.
+# SSH is key-only: the root public key is passed via the AUTHORIZED_KEYS env.
 # =============================================================================
 
 # -----------------------------------------------------------------------------
@@ -65,9 +64,8 @@
 # -----------------------------------------------------------------------------
 # STEP 2: Container environment (NON-secret envs only)
 # -----------------------------------------------------------------------------
-# PASSWORD (management-SSH root password) is added by rsc/secrets.local.rsc —
-# RUN THAT FIRST. Omit it entirely to disable password login (host keys are
-# still generated at startup; use /container/shell instead).
+# AUTHORIZED_KEYS = root SSH public key (key-only SSH). Omit it to disable SSH
+# login entirely (use /container/shell instead).
 #
 # DISK_USAGE_LIMIT caps the cache so it cannot fill the shared 30GB USB disk
 # (~28GB free when this was written, also used by nginx, syslog and swap).
@@ -79,6 +77,8 @@
 /container/envs/add list=apt-cacher key="DISTINCT_NAMESPACES"  value="1"
 /container/envs/add list=apt-cacher key="DISK_USAGE_LIMIT"     value="20GiB"
 /container/envs/add list=apt-cacher key="TZ"                   value="Europe/London"
+# Management SSH is public-key only (password auth disabled). Public key, not secret.
+/container/envs/add list=apt-cacher key="AUTHORIZED_KEYS"      value="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC7q+T7+t1+WmgR0O1jLjRBOF9823r9/ywVwi/qsGNRf/h7KWEhYpAiosTUUmA6wjqEH4znU7jFicWRaFQpZMBphePOqwzdkA/kUMjAfkcoLjT18MRdGeHxOP/6TVhZKO7apfHQTVG8OaZuDas9AiK1UtneKNZhR0Xu9tY7qUVX7Vaj92BvNszuxvlEzKwvW33CPL29bjulvwUN8utVuZcNXMm6AbSk5do+UYd6AU3algQSLcUg4d6DQOSdXgDrIsm7M9urDh45cxTqYWw/gGfTN7PJdjKZIY4mHh1IYq56tKrdmQr5lPbBMTkhgNWb7TBBrozds6NoSL3b72G4XzbN+ObZj9nqChf22b3aHt6xb8kT0z6FwzLNXosiRMJ8WcaQf1BynW9mQVx64PD82HAtjDZ22MHrHosHiWJuRIzzX1Rmco/DeU57FYpZES7S9Ma2gQBjGmdMBK3Y7QYz9flreDRJeok80oQ8EE/GOQSeoTOPe7D7u/Qk/LpSmOx3E0U= natasha@robloxlol.local"
 # https:// repos can only be TUNNELLED (not cached), and only to hosts listed
 # here — EXACT hostnames, comma/semicolon separated, no wildcards. Without this
 # apt gets "403 SSL CONNECT proxying not configured". Add a host per https repo.
