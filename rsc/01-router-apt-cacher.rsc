@@ -98,15 +98,17 @@
 # cache and re-download everything (and the cache would eat the root-dir).
 # Backed by /storage so it survives reboots, slot changes and container re-adds
 # (upgrade.rsc). The container creates the layout inside on first start.
+# Persistent SSH host keys (survive container re-creation; generated on first start).
+/container/mounts/add list=apt-cacher src=/storage/container-data/apt-cacher/ssh-host-keys dst=/etc/ssh/host-keys mode=rw
 /container/mounts/add \
     list=apt-cacher \
-    src=/storage/apt-cacher/cache \
+    src=/storage/container-data/apt-cacher/cache \
     dst=/var/cache/apt-cacher \
     mode=rw
 
 /container/mounts/add \
     list=apt-cacher \
-    src=/storage/apt-cacher/log \
+    src=/storage/container-data/apt-cacher/log \
     dst=/var/log/apt-cacher \
     mode=rw
 
@@ -182,7 +184,7 @@
 #   /ip/firewall/filter/print where comment~"apt-cacher:" ; accept, above the
 #                                                         ; ANYCAST catch-all
 #   /ip/dns/static/print where name="apt-cacher.dids.atasha.net"
-#   /file/print where name~"storage/apt-cacher"           ; cache/ and log/ exist
+#   /file/print where name~"storage/container-data/apt-cacher"           ; cache/ and log/ exist
 #
 #   # inside the container:
 #   /container/shell [find where hostname="apt-cacher-router"]
@@ -212,6 +214,6 @@
 #   /interface/veth/remove [find name=veth-apt-cacher]
 #   /container/envs/remove   [find where list=apt-cacher]
 #   /container/mounts/remove [find where list=apt-cacher]
-#   (the cache on /storage/apt-cacher is left in place; delete it with
+#   (the cache on /storage/container-data/apt-cacher is left in place; delete it with
 #   /file/remove if you want the space back)
 # =============================================================================

@@ -79,8 +79,8 @@ container log.
   entry are replaced by a loop in `apt-cacher.sh` (cron isn't installed, and
   the stock logrotate postrotate needs `invoke-rc.d`). Logs rotate with
   `copytruncate`, so no daemon restart is needed.
-- Mounts: `/storage/apt-cacher/cache` -> `/var/cache/apt-cacher`,
-  `/storage/apt-cacher/log` -> `/var/log/apt-cacher`. Both survive upgrades.
+- Mounts: `/storage/container-data/apt-cacher/cache` -> `/var/cache/apt-cacher`,
+  `/storage/container-data/apt-cacher/log` -> `/var/log/apt-cacher`. Both survive upgrades.
 
 ## RouterOS setup (`rsc/`)
 

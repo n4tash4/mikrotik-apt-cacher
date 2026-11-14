@@ -102,13 +102,34 @@ case "${DISTINCT_NAMESPACES}" in 0|1) ;; *) fatal "DISTINCT_NAMESPACES must be 0
 # are better practice.
 # ---------------------------------------------------------------------------
 mkdir -p /var/run/sshd
-if [ ! -f /etc/ssh/ssh_host_ed25519_key ]; then
-  ssh-keygen -A
-fi
+# Persistent SSH host keys. /etc/ssh/host-keys is a RouterOS mount
+# (/storage/container-data/<name>/ssh-host-keys) so the host keys survive
+# container re-creation (upgrades). Generated at runtime on first start only,
+# never at build time, so each container has its own keys.
+HOSTKEY_DIR=/etc/ssh/host-keys
+mkdir -p "${HOSTKEY_DIR}"
+chown root:root "${HOSTKEY_DIR}"
+chmod 700 "${HOSTKEY_DIR}"
+for t in ed25519 rsa; do
+  k="${HOSTKEY_DIR}/ssh_host_${t}_key"
+  if [ ! -s "${k}" ]; then
+    rm -f "${k}" "${k}.pub"
+    ssh-keygen -q -t "${t}" -N '' -f "${k}"
+  fi
+  chown root:root "${k}" "${k}.pub"
+  chmod 600 "${k}"
+  chmod 644 "${k}.pub"
+done
 # SSH is public-key only: install root's authorized_keys from AUTHORIZED_KEYS
 # (one or more OpenSSH public keys, newline separated). Unset -> nobody can
 # log in over SSH; use /container/shell from the router.
+# sshd StrictModes rejects authorized_keys unless the home dir is owned by
+# root. In privileged RouterOS containers image files keep a shifted uid
+# (seen as 32768), so force it.
+chown root:root /root
+chmod 700 /root
 mkdir -p /root/.ssh
+chown root:root /root/.ssh
 chmod 700 /root/.ssh
 if [ -n "${AUTHORIZED_KEYS:-}" ]; then
   printf '%s\n' "${AUTHORIZED_KEYS}" > /root/.ssh/authorized_keys

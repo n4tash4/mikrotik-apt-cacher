@@ -1,3 +1,8 @@
+# WARNING (2026-11-12): this script stops only ONE container. On a device where
+# other containers share image layers, re-extraction then fails with
+# "Text file busy" and the new container is left in error state. It also uses
+# `get ... status`, which RouterOS 7.25 does not have. Use the stop-all
+# procedure in mikrotik/.kiro/steering/mikrotik-containers.md (section 6) instead.
 # =============================================================================
 # Upgrade/redeploy the apt-cacher container — Main Router (192.168.100.1)
 #
@@ -7,7 +12,7 @@
 # (matching 01-router-apt-cacher.rsc STEP 4).
 #
 # Upload the new apt-cacher-arm64.tar to /storage BEFORE running this. The
-# cache and log mounts (/storage/apt-cacher/{cache,log}) and the envs survive
+# cache and log mounts (/storage/container-data/apt-cacher/{cache,log}) and the envs survive
 # the re-add, so nothing is re-downloaded.
 #
 # While the container is down (~1 min) LAN clients' apt runs fail to reach the

@@ -41,7 +41,9 @@ RUN apt-get update && \
     apt-get install -y apt-cacher && \
     apt-get install -y --no-install-recommends \
       logrotate openssh-server tzdata curl procps bash ca-certificates && \
-    rm -rf /var/lib/apt/lists/* /etc/cron.d/apt-cacher /etc/logrotate.d/apt-cacher && \
+    rm -rf /var/lib/apt/lists/* \
+    /etc/cron.d/apt-cacher /etc/logrotate.d/apt-cacher && \
+    rm -f /etc/ssh/ssh_host_* && \
     mkdir -p /var/run/sshd
 
 COPY sshd_config /etc/ssh/
